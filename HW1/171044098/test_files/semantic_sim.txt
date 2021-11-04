@@ -1,0 +1,15 @@
+türkiye cumhuriyeti 0.70
+yazı metin 0.50 
+tuz mineral 0.50
+göl nehir 0.60 
+fetih osmanlı 0.60 
+bölge sınır 0.50 
+gece gündüz 0.70 
+ağaç soyağacı 0.10 
+atatürk inkılap 0.70
+üreme canlı 0.70
+kuzey yön 0.50
+tarih savaş 0.50
+şiir edebiyat 0.50
+kitap yazar 0.50
+hava oksijen 0.60

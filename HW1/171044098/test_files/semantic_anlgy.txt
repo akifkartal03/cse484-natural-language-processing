@@ -1,0 +1,5 @@
+gece karanlık gündüz aydınlık 0.80 
+türkiye cumhuriyeti osmanlı devleti 0.80
+kış soğuk yaz sıcak 0.60
+erkek dişi baba anne 0.80
+mantar bitki kuş hayvan 0.70

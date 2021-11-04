@@ -4,4 +4,16 @@
 from turkishnlp import detector
 
 obj = detector.TurkishNLP()
-print(obj.syllabicate_sentence("Hiç unutmadım, doğudan esen hafif bir yel saçlarını dalgalandırıyordu"))
+
+f = open('sample36.txt','r',encoding = 'utf-8')
+file = open('heceler.txt','w',encoding = 'utf-8')
+
+line = f.read()
+arr = obj.syllabicate_sentence(line)
+for element in arr:
+    for innerelement in element:
+        file.write(innerelement)
+        file.write(" ")
+file.close()
+f.close()
+
