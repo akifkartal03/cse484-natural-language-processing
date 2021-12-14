@@ -1,5 +1,11 @@
+import math
+import re
+
+# nltk libraries
 from nltk import collections
+from nltk import tokenize
 from nltk.util import ngrams
+# syllable helper library
 from turkishnlp import detector
 
 
@@ -10,6 +16,7 @@ class HW2:
     def __init__(self):
         # write class variables here.
         self.__nlp = detector.TurkishNLP()
+        self.__ngr = 0
         self.__ngramTable = None
         self.__ngramTableSize = 0
         self.__wordCounts = None
@@ -24,13 +31,19 @@ class HW2:
 
     def get_results(self):
         print("test")
-        self.__calculateNgrams(2)
+        # self.__separate_syllables()
+        # self.__findPerplexity()
+        #"""
+        self.__ngr = 2
+        self.__calculateNgrams(self.__ngr)
         self.__createCountTable()
         f1 = open("outputs/countTable.txt", "w", encoding="utf8")
         f1.write(str(self.__countTable))
         self.__gtSmoothing()
+        self.__findTestPerplexity()
         f1 = open("outputs/gtTable.txt", "w", encoding="utf8")
         f1.write(str(self.__GtTable))
+        #"""
 
     def __separate_syllables(self):
         self.__testFile1 = open('inputs/corpus_out.txt', 'r', encoding='utf-8')
@@ -43,24 +56,38 @@ class HW2:
             for innerelement in element:
                 self.__testFile2.write(innerelement)
                 self.__testFile2.write(" ")
+            self.__testFile2.write(",")
         self.__testFile2.close()
         self.__testFile1.close()
+
+    def __sentence_syllable(self, sentence):
+        obj = detector.TurkishNLP()
+        arr = obj.syllabicate_sentence(sentence)
+        res = []
+        for element in arr:
+            for innerelement in element:
+                res.append(innerelement)
+            res.append(' ')
+        return res
 
     def __calculateNgrams(self, size):
         name = "outputs/myGram" + str(size) + ".txt"
         print(name)
-        f = open('inputs/corpus_syl.txt', 'r', encoding='utf-8')
+        f = open('inputs/corpus_syl2.txt', 'r', encoding='utf-8')
         of = open(name, 'w', encoding='utf-8')
         corpusSyl = f.read()
-        corpusSyl = corpusSyl.split(' ')
-        self.__ngramTable = list(ngrams(corpusSyl, size))
-
+        cs = re.split(" ,", corpusSyl)
+        cs2 = []
+        for i in cs:
+            cs2.extend(i.split(" "))
+            cs2.append(" ")
+        self.__ngramTable = list(ngrams(cs2, size))
         f1 = open("outputs/counters.txt", "w", encoding="utf8")
         self.__wordCounts = collections.Counter(self.__ngramTable)
         f1.write(str(dict(self.__wordCounts)))
         self.__ngramTableSize = len(self.__ngramTable)
-        print("size: " + str(self.__ngramTableSize))
-        of.write(' '.join(corpusSyl))
+        #print("size: " + str(self.__ngramTableSize))
+        of.write(' '.join(cs))
         f.close()
         of.close()
         f1.close()
@@ -107,6 +134,45 @@ class HW2:
             self.__GtTable[i] = res1 / res2
 
         print(self.__n1)
+
+    def __findTestPerplexity(self):
+        f = open('inputs/corpus_test.txt', 'r', encoding='utf-8')
+        allSentences = tokenize.sent_tokenize(f.read())
+        for sent in allSentences:
+            result = self.__calculateTestPerplexity(sent)
+            if result > 0:
+                print(sent, result)
+
+    def __chainWithMarkovAssumption(self, sentence):
+        sylArr = self.__sentence_syllable(sentence)
+        if len(sylArr) < self.__ngr:
+            return 0
+
+        gramList = list(ngrams(sylArr, self.__ngr))
+        logSum = 0
+        for i in gramList:
+            if i in self.__GtTable:
+
+                if self.__GtTable[i] / self.__ngramTableSize <= 0:
+                    logSum += 0
+                else:
+                    logSum += math.log10(self.__GtTable[i] / self.__ngramTableSize)
+
+            else:
+
+                if self.__countTable[1] / self.__ngramTableSize <= 0:
+                    logSum += 0
+                else:
+                    logSum += math.log10(self.__countTable[1] / self.__ngramTableSize)
+        return math.exp(logSum)
+
+    def __calculateTestPerplexity(self, sentence):
+        res = self.__chainWithMarkovAssumption(sentence)
+        if res != 0:
+            root = 1 / res
+            return math.pow(root, 1 / self.__ngr)
+        else:
+            return 0
 
 
 hw2 = HW2()

@@ -267,4 +267,4 @@ class NgramModel:
             call += 1
             return self.generator(newSpell, sentence, call)
 
-test1 = NgramModel("inputs/corpus_out.txt", "inputs/corpus_test.txt",2)
+test1 = NgramModel("inputs/corpus_out.txt", "inputs/corpus_test.txt",1)
