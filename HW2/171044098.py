@@ -1,3 +1,4 @@
+#helper libs
 import math
 import re
 
@@ -26,26 +27,57 @@ class HW2:
 
         self.__testFile1 = None
         self.__testFile2 = None
-        self.__perpFile = open('outputs/perpRes.txt', 'w', encoding='utf-8')
-        self.__testFile4 = None
+        self.__corpusSylFile = None
+        self.__corpusTestFile = None
+        self.__perpFile = None
+        self.__gramFile = None
+        self.__countFile = None
+        self.__counterFile = None
+        self.__gtTableFile = None
 
-    def get_results(self):
-        print("test")
-        # self.__separate_syllables()
-        # self.__findPerplexity()
-        # """
-        self.__ngr = 2
+    def get_results(self, ngr):
+        print(str(ngr) + " Gram calculating...")
+
+        self.__openFiles(ngr)
+        self.__ngr = ngr
         self.__calculateNgrams(self.__ngr)
         self.__createCountTable()
-        f1 = open("outputs/countTable.txt", "w", encoding="utf8")
-        f1.write(str(self.__countTable))
+
+        self.__countFile.write(str(self.__countTable))
         self.__gtSmoothing()
         self.__findTestPerplexity()
-        f1 = open("outputs/gtTable.txt", "w", encoding="utf8")
-        f1.write(str(self.__GtTable))
-        # """
+        self.__gtTableFile.write(str(self.__GtTable))
+        print(str(ngr) + " Gram table size: " + str(self.__ngramTableSize))
+        print("---------------------------------------------------")
+        self.__closeFiles()
+
+    def __openFiles(self, ngr):
+        name1 = 'inputs/corpus_syl.txt'
+        name2 = 'inputs/corpus_test.txt'
+        name3 = "outputs/perpRes" + str(ngr) + ".txt"
+        name4 = "outputs/nGrams" + str(ngr) + ".txt"
+        name5 = "outputs/countTable" + str(ngr) + ".txt"
+        name6 = "outputs/counter" + str(ngr) + ".txt"
+        name7 = "outputs/GtTable" + str(ngr) + ".txt"
+        self.__corpusSylFile = open(name1, 'r', encoding='utf-8')
+        self.__corpusTestFile = open(name2, 'r', encoding='utf-8')
+        self.__perpFile = open(name3, 'w', encoding='utf-8')
+        self.__gramFile = open(name4, 'w', encoding='utf-8')
+        self.__countFile = open(name5, 'w', encoding='utf-8')
+        self.__counterFile = open(name6, 'w', encoding='utf-8')
+        self.__gtTableFile = open(name7, 'w', encoding='utf-8')
+
+    def __closeFiles(self):
+        self.__corpusSylFile.close()
+        self.__corpusTestFile.close()
+        self.__perpFile.close()
+        self.__gramFile.close()
+        self.__countFile.close()
+        self.__counterFile.close()
+        self.__gtTableFile.close()
 
     def __separate_syllables(self):
+        # this is one time used function
         self.__testFile1 = open('inputs/corpus_out.txt', 'r', encoding='utf-8')
         self.__testFile2 = open('inputs/corpus_syl2.txt', 'w', encoding='utf-8')
         obj = detector.TurkishNLP()
@@ -71,35 +103,17 @@ class HW2:
         return res
 
     def __calculateNgrams(self, size):
-        name = "outputs/myGram" + str(size) + ".txt"
-        print(name)
-        f = open('inputs/corpus_syl2.txt', 'r', encoding='utf-8')
-        of = open(name, 'w', encoding='utf-8')
-        corpusSyl = f.read()
+        corpusSyl = self.__corpusSylFile.read()
         cs = re.split(" ,", corpusSyl)
         cs2 = []
         for i in cs:
             cs2.extend(i.split(" "))
             cs2.append(" ")
         self.__ngramTable = list(ngrams(cs2, size))
-        f1 = open("outputs/counters.txt", "w", encoding="utf8")
         self.__wordCounts = collections.Counter(self.__ngramTable)
-        f1.write(str(dict(self.__wordCounts)))
+        self.__counterFile.write(str(dict(self.__wordCounts)))
         self.__ngramTableSize = len(self.__ngramTable)
-        # print("size: " + str(self.__ngramTableSize))
-        of.write(' '.join(cs))
-        f.close()
-        of.close()
-        f1.close()
-
-    def __lowerText(self):
-        f = open('inputs/corpus_test.txt', 'r', encoding='utf-8')
-        of = open('inputs/corpus_test3.txt', 'w', encoding='utf-8')
-        corpusSyl = f.read()
-        corpusSyl = corpusSyl.lower()
-        of.write(corpusSyl)
-        f.close()
-        of.close()
+        self.__gramFile.write(' '.join(cs))
 
     def __createCountTable(self):
         self.__countTable = dict()
@@ -130,13 +144,9 @@ class HW2:
 
                 self.__GtTable[i] = res1 / res2
 
-        print(self.__n1)
-
     def __findTestPerplexity(self):
-        f = open('inputs/corpus_test.txt', 'r', encoding='utf-8')
-        # self.__perpFile = open('outputs/perpRes.txt', 'w', encoding='utf-8')
 
-        allSentences = tokenize.sent_tokenize(f.read())
+        allSentences = tokenize.sent_tokenize(self.__corpusTestFile.read())
         for sent in allSentences:
             result = self.__calculateTestPerplexity(sent)
             if result > 0:
@@ -178,4 +188,9 @@ class HW2:
 
 
 hw2 = HW2()
-hw2.get_results()
+hw2.get_results(1)
+hw2.get_results(2)
+hw2.get_results(3)
+hw2.get_results(4)
+hw2.get_results(5)
+print("Calculation is done. Check output files..")
