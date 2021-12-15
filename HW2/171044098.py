@@ -14,7 +14,7 @@ from turkishnlp import detector
 class HW2:
 
     def __init__(self):
-        # write class variables here.
+        # class variables
         self.__nlp = detector.TurkishNLP()
         self.__ngr = 0
         self.__ngramTable = None
@@ -26,14 +26,14 @@ class HW2:
 
         self.__testFile1 = None
         self.__testFile2 = None
-        self.__testFile3 = None
+        self.__perpFile = open('outputs/perpRes.txt', 'w', encoding='utf-8')
         self.__testFile4 = None
 
     def get_results(self):
         print("test")
         # self.__separate_syllables()
         # self.__findPerplexity()
-        #"""
+        # """
         self.__ngr = 2
         self.__calculateNgrams(self.__ngr)
         self.__createCountTable()
@@ -43,7 +43,7 @@ class HW2:
         self.__findTestPerplexity()
         f1 = open("outputs/gtTable.txt", "w", encoding="utf8")
         f1.write(str(self.__GtTable))
-        #"""
+        # """
 
     def __separate_syllables(self):
         self.__testFile1 = open('inputs/corpus_out.txt', 'r', encoding='utf-8')
@@ -86,7 +86,7 @@ class HW2:
         self.__wordCounts = collections.Counter(self.__ngramTable)
         f1.write(str(dict(self.__wordCounts)))
         self.__ngramTableSize = len(self.__ngramTable)
-        #print("size: " + str(self.__ngramTableSize))
+        # print("size: " + str(self.__ngramTableSize))
         of.write(' '.join(cs))
         f.close()
         of.close()
@@ -118,30 +118,29 @@ class HW2:
         for i in self.__wordCounts:
             c = self.__wordCounts[i]
 
-            if (c + 1) not in self.__countTable:
-                nc1 = 1
+            c0 = self.__n1 / self.__ngramTableSize
+            if c not in self.__countTable or (c + 1) not in self.__countTable:
+                self.__GtTable[i] = c0
             else:
                 nc1 = self.__countTable[c + 1]
-
-            if c not in self.__countTable:
-                nc = 1
-            else:
                 nc = self.__countTable[c]
 
-            res1 = (((c + 1) * nc1) / nc) - ((c * ((c + 1) * nc1)) / self.__n1)
-            res2 = 1 - (((c + 1) * nc1) / self.__n1)
+                res1 = (((c + 1) * nc1) / nc) - ((c * ((c + 1) * nc1)) / self.__n1)
+                res2 = 1 - (((c + 1) * nc1) / self.__n1)
 
-            self.__GtTable[i] = res1 / res2
+                self.__GtTable[i] = res1 / res2
 
         print(self.__n1)
 
     def __findTestPerplexity(self):
         f = open('inputs/corpus_test.txt', 'r', encoding='utf-8')
+        # self.__perpFile = open('outputs/perpRes.txt', 'w', encoding='utf-8')
+
         allSentences = tokenize.sent_tokenize(f.read())
         for sent in allSentences:
             result = self.__calculateTestPerplexity(sent)
             if result > 0:
-                print(sent, result)
+                self.__writePerpToFile(sent, result)
 
     def __chainWithMarkovAssumption(self, sentence):
         sylArr = self.__sentence_syllable(sentence)
@@ -173,6 +172,9 @@ class HW2:
             return math.pow(root, 1 / self.__ngr)
         else:
             return 0
+
+    def __writePerpToFile(self, sentence, result):
+        self.__perpFile.write(sentence + " " + str(result) + "\n")
 
 
 hw2 = HW2()
