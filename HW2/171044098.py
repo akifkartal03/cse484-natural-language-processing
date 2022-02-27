@@ -1,4 +1,4 @@
-#helper libs
+# helper libs
 import math
 import re
 
@@ -24,6 +24,7 @@ class HW2:
         self.__countTable = None
         self.__GtTable = None
         self.__n1 = None
+        self.__N = 0
 
         self.__testFile1 = None
         self.__testFile2 = None
@@ -111,6 +112,7 @@ class HW2:
             cs2.append(" ")
         self.__ngramTable = list(ngrams(cs2, size))
         self.__wordCounts = collections.Counter(self.__ngramTable)
+        self.__N = sum(self.__wordCounts.values())
         self.__counterFile.write(str(dict(self.__wordCounts)))
         self.__ngramTableSize = len(self.__ngramTable)
         self.__gramFile.write(' '.join(cs))
@@ -122,6 +124,8 @@ class HW2:
                 self.__countTable[self.__wordCounts[i]] += 1
             else:
                 self.__countTable[self.__wordCounts[i]] = 1
+            # self.__N = self.__N + 1
+        # print(self.__N)
 
     def __gtSmoothing(self):
         self.__GtTable = dict()
@@ -132,17 +136,21 @@ class HW2:
         for i in self.__wordCounts:
             c = self.__wordCounts[i]
 
-            c0 = self.__n1 / self.__ngramTableSize
-            if c not in self.__countTable or (c + 1) not in self.__countTable:
+            c0 = self.__n1 / self.__N
+            if c not in self.__countTable:
                 self.__GtTable[i] = c0
+            elif (c + 1) not in self.__countTable:
+                nc1 = c0
+                nc = self.__countTable[c]
+
+                res = (((c + 1) * nc1) / nc)
+                self.__GtTable[i] = res
             else:
                 nc1 = self.__countTable[c + 1]
                 nc = self.__countTable[c]
 
-                res1 = (((c + 1) * nc1) / nc) - ((c * ((c + 1) * nc1)) / self.__n1)
-                res2 = 1 - (((c + 1) * nc1) / self.__n1)
-
-                self.__GtTable[i] = res1 / res2
+                res = (((c + 1) * nc1) / nc)
+                self.__GtTable[i] = res
 
     def __findTestPerplexity(self):
 
@@ -160,19 +168,22 @@ class HW2:
         gramList = list(ngrams(sylArr, self.__ngr))
         logSum = 0
         for i in gramList:
+
             if i in self.__GtTable:
 
-                if self.__GtTable[i] / self.__ngramTableSize <= 0:
+                if self.__GtTable[i] / self.__N <= 0:
                     logSum += 0
                 else:
-                    logSum += math.log10(self.__GtTable[i] / self.__ngramTableSize)
+                    logSum += math.log10(self.__GtTable[i] / self.__N)
+
 
             else:
 
-                if self.__countTable[1] / self.__ngramTableSize <= 0:
+                if self.__countTable[1] / self.__N <= 0:
                     logSum += 0
                 else:
-                    logSum += math.log10(self.__countTable[1] / self.__ngramTableSize)
+                    logSum += math.log10(self.__countTable[1] / self.__N)
+
         return math.exp(logSum)
 
     def __calculateTestPerplexity(self, sentence):
